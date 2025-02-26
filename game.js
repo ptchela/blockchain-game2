@@ -194,5 +194,6 @@ function checkGameOver() {
   if (!empty) {
     gameOver = true;
     gameOverDiv.innerText = "Game Over!";
+    endGame(score);
   }
 }
