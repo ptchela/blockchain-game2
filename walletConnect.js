@@ -23,7 +23,7 @@ let walletType = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectWallet").addEventListener("click", connectWallet);
-    // Если требуется авто-подключение, можно раскомментировать строку ниже:
+    // Если нужно автоподключение, раскомментируйте:
     // connectWallet();
 });
 
@@ -60,7 +60,15 @@ async function recordGameResult(finalScore) {
     }
     try {
         console.log("Sending transaction with score:", finalScore);
-        const tx = await contract.recordScore(finalScore);
+        let gasLimit;
+        try {
+            gasLimit = await contract.estimateGas.recordScore(finalScore);
+            console.log("Gas estimate:", gasLimit.toString());
+        } catch (e) {
+            console.warn("Gas estimation failed, using default gas limit.", e);
+            gasLimit = 300000; // Установите значение, подходящее для вашего контракта
+        }
+        const tx = await contract.recordScore(finalScore, { gasLimit: gasLimit });
         console.log("Transaction sent:", tx.hash);
         alert("Transaction sent. Please confirm in your wallet.");
         await tx.wait();
