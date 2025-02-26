@@ -14,6 +14,8 @@ let board = {};
 let cells = [];
 let queue = [];
 let score = 0;
+let moves = 0;       // количество совершённых ходов
+let maxLevel = 1;    // максимальный достигнутый уровень
 let gameOver = false;
 
 const boardDiv = document.getElementById("board");
@@ -118,6 +120,7 @@ function placeToken(cell) {
   const token = queue.shift();
   cell.token = token;
   updateCell(cell);
+  moves++; // увеличиваем счётчик ходов
   queue.push(getRandomToken());
   renderQueue();
   checkMerge(cell);
@@ -158,6 +161,10 @@ function checkMerge(cell) {
       }
     });
     cell.token.level = level + 1;
+    // Обновляем maxLevel, если достигнут новый максимум
+    if (cell.token.level > maxLevel) {
+      maxLevel = cell.token.level;
+    }
     updateCell(cell);
     score += cell.token.level * group.length * 10;
     updateScore();
@@ -194,6 +201,7 @@ function checkGameOver() {
   if (!empty) {
     gameOver = true;
     gameOverDiv.innerText = "Game Over!";
-    endGame(score);
+    // Передаём три параметра: score, moves и maxLevel
+    endGame(score, moves, maxLevel);
   }
 }

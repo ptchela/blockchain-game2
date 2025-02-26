@@ -1,7 +1,11 @@
 const CONTRACT_ADDRESS = "0x29499c5603B2604d1d34487EfC0e2D9c504534de";
 const CONTRACT_ABI = [
     {
-        "inputs": [{ "internalType": "uint256", "name": "score", "type": "uint256" }],
+        "inputs": [
+            { "internalType": "uint256", "name": "points", "type": "uint256" },
+            { "internalType": "uint256", "name": "moves", "type": "uint256" },
+            { "internalType": "uint256", "name": "level", "type": "uint256" }
+        ],
         "name": "recordScore",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -10,7 +14,11 @@ const CONTRACT_ABI = [
     {
         "inputs": [{ "internalType": "address", "name": "player", "type": "address" }],
         "name": "getLastScore",
-        "outputs": [{ "internalType": "uint256", "name": "score", "type": "uint256" }],
+        "outputs": [
+            { "internalType": "uint256", "name": "points", "type": "uint256" },
+            { "internalType": "uint256", "name": "moves", "type": "uint256" },
+            { "internalType": "uint256", "name": "level", "type": "uint256" }
+        ],
         "stateMutability": "view",
         "type": "function"
     }
@@ -53,22 +61,22 @@ async function connectWallet() {
     }
 }
 
-async function recordGameResult(finalScore) {
+async function recordGameResult(points, moves, level) {
     if (!signer) {
         alert("Wallet not connected!");
         return;
     }
     try {
-        console.log("Sending transaction with score:", finalScore);
+        console.log("Sending transaction with points:", points, "moves:", moves, "level:", level);
         let gasLimit;
         try {
-            gasLimit = await contract.estimateGas.recordScore(finalScore);
+            gasLimit = await contract.estimateGas.recordScore(points, moves, level);
             console.log("Gas estimate:", gasLimit.toString());
         } catch (e) {
             console.warn("Gas estimation failed, using default gas limit.", e);
             gasLimit = 300000; // Установите значение, подходящее для вашего контракта
         }
-        const tx = await contract.recordScore(finalScore, { gasLimit: gasLimit });
+        const tx = await contract.recordScore(points, moves, level, { gasLimit: gasLimit });
         console.log("Transaction sent:", tx.hash);
         alert("Transaction sent. Please confirm in your wallet.");
         await tx.wait();
@@ -85,18 +93,22 @@ async function updateBestScore() {
     if (!signer) return;
     try {
         const playerAddress = await signer.getAddress();
-        const bestScore = await contract.getLastScore(playerAddress);
-        document.getElementById("lastScore").innerText = `Best Score: ${bestScore.toString()}`;
+        const result = await contract.getLastScore(playerAddress);
+        // result – массив [points, moves, level]
+        const points = result[0].toString();
+        const moves = result[1].toString();
+        const level = result[2].toString();
+        document.getElementById("lastScore").innerText = `Best Score: ${points} (Moves: ${moves}, Level: ${level})`;
     } catch (error) {
         console.error("Error fetching best score:", error);
         document.getElementById("lastScore").innerText = "Best Score: No record found";
     }
 }
 
-function endGame(finalScore) {
-    console.log("Game Over! Score:", finalScore);
+function endGame(points, moves, level) {
+    console.log("Game Over! Score:", points, "Moves:", moves, "Level:", level);
     document.getElementById("gameOver").innerText = "Game Over!";
-    recordGameResult(finalScore);
+    recordGameResult(points, moves, level);
 }
 
 // Делаем функцию endGame глобально доступной для game.js
