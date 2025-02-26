@@ -61,9 +61,6 @@ function createBoard() {
   }
 
   const margin = 20;
-  const width = maxX - minX + CELL_DIAMETER + margin * 2;
-  const height = maxY - minY + CELL_DIAMETER + margin * 2;
-
   cells.forEach(cell => {
     const cellDiv = document.createElement("div");
     cellDiv.classList.add("cell");
@@ -203,19 +200,15 @@ function checkGameOver() {
   if (!empty) {
     gameOver = true;
     gameOverDiv.innerText = "Game Over!";
-    // Показываем кнопку New Game
     document.getElementById("newGame").style.display = "block";
     endGame(score, moves, maxLevel);
   }
 }
 
-// Функция сброса игры без перезагрузки страницы
 function resetGame() {
-  // Очищаем контейнеры
   boardDiv.innerHTML = "";
   queueDiv.innerHTML = "";
   gameOverDiv.innerText = "";
-  // Сбрасываем глобальные переменные
   board = {};
   cells = [];
   queue = [];
@@ -223,8 +216,6 @@ function resetGame() {
   moves = 0;
   maxLevel = 1;
   gameOver = false;
-  // Скрываем кнопку New Game
   document.getElementById("newGame").style.display = "none";
-  // Переинициализируем игру
   initGame();
 }
