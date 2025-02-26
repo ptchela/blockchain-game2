@@ -1,24 +1,22 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hex Game</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Подключаем ethers.js через CDN -->
   <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <script src="game.js" defer></script>
+  <script src="walletConnect.js" defer></script>
 </head>
 <body>
   <button id="connectWallet">Connect Wallet</button>
   <div id="walletStatus">Not connected</div>
   <div id="lastScore">Best Score: -</div>
-
   <div id="score">Score: 0</div>
   Next
   <div id="queue"></div>
   <div id="board"></div>
   <div id="gameOver"></div>
-
-  <script src="game.js"></script>
-  <script src="walletConnect.js"></script>
 </body>
 </html>
