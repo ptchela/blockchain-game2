@@ -23,7 +23,10 @@ const queueDiv = document.getElementById("queue");
 const scoreDiv = document.getElementById("score");
 const gameOverDiv = document.getElementById("gameOver");
 
-document.addEventListener("DOMContentLoaded", initGame);
+document.addEventListener("DOMContentLoaded", () => {
+  initGame();
+  document.getElementById("newGame").addEventListener("click", resetGame);
+});
 
 function initGame() {
   createBoard();
@@ -120,7 +123,7 @@ function placeToken(cell) {
   const token = queue.shift();
   cell.token = token;
   updateCell(cell);
-  moves++; // увеличиваем счётчик ходов
+  moves++; // увеличиваем число ходов
   queue.push(getRandomToken());
   renderQueue();
   checkMerge(cell);
@@ -161,7 +164,6 @@ function checkMerge(cell) {
       }
     });
     cell.token.level = level + 1;
-    // Обновляем maxLevel, если достигнут новый максимум
     if (cell.token.level > maxLevel) {
       maxLevel = cell.token.level;
     }
@@ -201,7 +203,28 @@ function checkGameOver() {
   if (!empty) {
     gameOver = true;
     gameOverDiv.innerText = "Game Over!";
-    // Передаём три параметра: score, moves и maxLevel
+    // Показываем кнопку New Game
+    document.getElementById("newGame").style.display = "block";
     endGame(score, moves, maxLevel);
   }
+}
+
+// Функция сброса игры без перезагрузки страницы
+function resetGame() {
+  // Очищаем контейнеры
+  boardDiv.innerHTML = "";
+  queueDiv.innerHTML = "";
+  gameOverDiv.innerText = "";
+  // Сбрасываем глобальные переменные
+  board = {};
+  cells = [];
+  queue = [];
+  score = 0;
+  moves = 0;
+  maxLevel = 1;
+  gameOver = false;
+  // Скрываем кнопку New Game
+  document.getElementById("newGame").style.display = "none";
+  // Переинициализируем игру
+  initGame();
 }
