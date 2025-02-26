@@ -1,4 +1,4 @@
-const CONTRACT_ADDRESS = "0x608060405234801561001057600080fd5b506004..."; // Укажи здесь свой полный контракт
+const CONTRACT_ADDRESS = "0x29499c5603B2604d1d34487EfC0e2D9c504534de";
 const CONTRACT_ABI = [
     {
         "inputs": [{ "internalType": "uint256", "name": "score", "type": "uint256" }],
@@ -30,7 +30,8 @@ async function connectWallet() {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "MetaMask";
     } else if (window.solana && window.solana.isPhantom) {
-        provider = window.solana;
+        // Используем ethers-провайдер для Phantom
+        provider = new ethers.providers.Web3Provider(window.solana);
         walletType = "Phantom";
     } else if (window.rabby) {
         provider = new ethers.providers.Web3Provider(window.rabby);
@@ -41,12 +42,9 @@ async function connectWallet() {
     }
 
     try {
-        if (walletType === "MetaMask" || walletType === "Rabby") {
-            await provider.send("eth_requestAccounts", []);
-            signer = provider.getSigner();
-        } else if (walletType === "Phantom") {
-            await provider.connect();
-        }
+        // Запрашиваем доступ к аккаунтам для всех кошельков
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
 
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
@@ -76,7 +74,7 @@ async function updateBestScore() {
     try {
         const playerAddress = await signer.getAddress();
         const bestScore = await contract.getLastScore(playerAddress);
-        document.getElementById("lastScore").innerText = `Best Score: ${bestScore}`;
+        document.getElementById("lastScore").innerText = `Best Score: ${bestScore.toString()}`;
     } catch (error) {
         console.error("Error fetching best score:", error);
         document.getElementById("lastScore").innerText = "Best Score: No record found";
