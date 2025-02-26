@@ -23,6 +23,8 @@ let walletType = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectWallet").addEventListener("click", connectWallet);
+    // Если требуется авто-подключение, можно раскомментировать строку ниже:
+    // connectWallet();
 });
 
 async function connectWallet() {
@@ -88,3 +90,6 @@ function endGame(finalScore) {
     document.getElementById("gameOver").innerText = "Game Over!";
     recordGameResult(finalScore);
 }
+
+// Делаем функцию endGame глобально доступной для game.js
+window.endGame = endGame;
