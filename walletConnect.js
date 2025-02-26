@@ -30,7 +30,6 @@ async function connectWallet() {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "MetaMask";
     } else if (window.solana && window.solana.isPhantom) {
-        // Используем ethers-провайдер для Phantom
         provider = new ethers.providers.Web3Provider(window.solana);
         walletType = "Phantom";
     } else if (window.rabby) {
@@ -42,10 +41,8 @@ async function connectWallet() {
     }
 
     try {
-        // Запрашиваем доступ к аккаунтам для всех кошельков
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
-
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
         updateBestScore();
@@ -60,12 +57,17 @@ async function recordGameResult(finalScore) {
         return;
     }
     try {
+        console.log("Sending transaction with score:", finalScore);
         const tx = await contract.recordScore(finalScore);
-        console.log("Score recorded:", tx.hash);
+        console.log("Transaction sent:", tx.hash);
+        alert("Transaction sent. Please confirm in your wallet.");
+        await tx.wait();
+        console.log("Transaction confirmed:", tx.hash);
         alert("Score recorded on blockchain!");
         await updateBestScore();
     } catch (error) {
         console.error("Error recording score:", error);
+        alert("Error recording score: " + error.message);
     }
 }
 
