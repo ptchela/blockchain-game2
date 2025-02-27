@@ -7,19 +7,14 @@ body {
   padding: 0;
 }
 
-/* Стили для статусов кошелька и счёта */
-#walletStatus {
-  font-size: 12px;
-  margin: 10px;
-}
-
+/* Стили для заголовков и счёта */
 #score {
   font-size: 20px;
   margin: 10px;
 }
 
-#lastScore {
-  font-size: 16px;
+#lastScore, #prevScore {
+  font-size: 16px; /* уменьшенный размер шрифта */
   margin: 10px;
 }
 
@@ -32,7 +27,7 @@ body {
   margin: 10px auto 0 auto;
 }
 
-/* Надпись Next, располагается слева от очереди */
+/* Надпись Next, теперь слева от очереди */
 #next {
   font-size: 20px;
   color: #333;
@@ -44,8 +39,8 @@ body {
   gap: 10px;
 }
 
-/* Фишки в очереди и фишки на игровом поле в стиле глянцевого леденца */
-.token, .queue-token {
+/* Фишка в очереди */
+.queue-token {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -53,17 +48,14 @@ body {
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  font-size: 18px;
+  /* Фон задаётся через инлайновый стиль из game.js (например, red или blue) */
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
   color: white;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  /* Глянцевый эффект: яркий блеск в верхнем левом углу, плавно переходящий в основной цвет */
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,1) 0%, currentColor 60%);
-  /* Внутренняя тень для эффекта глубины и внешняя тень для объёма */
-  box-shadow: inset 0 0 8px rgba(255,255,255,0.8), 0 4px 6px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
 }
 
-.token:hover, .queue-token:hover {
+.queue-token:hover {
   transform: scale(1.1);
 }
 
@@ -75,8 +67,8 @@ body {
 #board {
   position: relative;
   margin: 20px auto;
-  width: 360px;
-  height: 320px;
+  width: 350px;
+  height: 310px;
   background: linear-gradient(145deg, #e0f7ff, #fff);
   border: 5px solid #b0e0f7;
   border-radius: 30px;
@@ -107,7 +99,7 @@ body {
   opacity: 1;
 }
 
-/* Ячейки игрового поля */
+/* Ячейка игрового поля */
 .cell {
   position: absolute;
   width: 40px;
@@ -125,7 +117,29 @@ body {
   transform: scale(1.05);
 }
 
-/* Кнопка New Game */
+/* Фишка внутри ячейки */
+.token {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 18px;
+  /* Фон задаётся через инлайновый стиль (например, red или blue) */
+  box-shadow: inset 0 -2px 6px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.token:hover {
+  transform: scale(1.05);
+  box-shadow: inset 0 -2px 6px rgba(0,0,0,0.4), 0 6px 12px rgba(0,0,0,0.4);
+}
+
+/* Стили для кнопки New Game */
 #newGame, .new-game {
   position: fixed;
   bottom: 20px;
