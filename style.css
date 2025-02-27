@@ -14,23 +14,29 @@ body {
 }
 
 #lastScore, #prevScore {
-  font-size: 16px; /* уменьшили размер шрифта */
+  font-size: 16px; /* уменьшенный размер шрифта */
   margin: 10px;
+}
+
+/* Контейнер для надписи Next и очереди шариков */
+#nextQueueContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px auto 0 auto;
+}
+
+/* Надпись Next, теперь слева от очереди */
+#next {
+  font-size: 20px;
+  color: #333;
 }
 
 /* Контейнер для очереди фишек */
 #queue {
-  margin: 10px auto 0 auto;
   display: flex;
-  justify-content: center;
   gap: 10px;
-}
-
-/* Надпись Next под очередью */
-#next {
-  margin-top: 10px;
-  font-size: 20px;
-  color: #333;
 }
 
 /* Фишка в очереди */
