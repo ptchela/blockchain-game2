@@ -207,8 +207,10 @@ function checkGameOver() {
 }
 
 function resetGame() {
+  // Очищаем игровое поле, но сохраняем элемент gameOver
   boardDiv.innerHTML = "";
   boardDiv.classList.remove("show-game-over");
+  boardDiv.appendChild(gameOverDiv); // Добавляем надпись обратно
   queueDiv.innerHTML = "";
   gameOver = false;
   cells = [];
@@ -220,3 +222,11 @@ function resetGame() {
   document.getElementById("newGame").style.display = "none";
   initGame();
 }
+
+function endGame(points, moves, level) {
+  console.log("Game Over! Score:", points, "Moves:", moves, "Level:", level);
+  recordGameResult(points, moves, level);
+}
+
+// Экспортируем endGame в глобальную область для вызова из walletConnect.js
+window.endGame = endGame;
