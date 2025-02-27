@@ -8,8 +8,13 @@ body {
 }
 
 /* Стили для заголовков и счёта */
-#score, #lastScore, #prevScore {
+#score {
   font-size: 20px;
+  margin: 10px;
+}
+
+#lastScore, #prevScore {
+  font-size: 16px; /* уменьшили размер шрифта */
   margin: 10px;
 }
 
