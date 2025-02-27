@@ -1,28 +1,23 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hex Game</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-  <!-- Подключаем сначала walletConnect.js -->
   <script src="walletConnect.js" defer></script>
-  <!-- Затем game.js -->
   <script src="game.js" defer></script>
 </head>
 <body>
   <button id="connectWallet">Connect Wallet</button>
   <div id="walletStatus">Not connected</div>
   <div id="lastScore">Best Score: -</div>
-  <div id="prevScore">Previous Score: -</div>
   <div id="score">Score: 0</div>
   Next
   <div id="queue"></div>
-  <div id="board">
-    <!-- Оверлей для отображения Game Over -->
-    <div id="gameOverOverlay">GAME OVER</div>
-  </div>
+  <div id="board"></div>
+  <div id="gameOver">Game Over!</div>
   <button id="newGame" class="new-game" style="display: none;">New Game</button>
 </body>
 </html>

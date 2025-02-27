@@ -2,26 +2,26 @@ const HEX_RADIUS = 30;
 const CELL_DIAMETER = 40;
 const BOARD_RADIUS = 3;
 const directions = [
-  {q: 1,  r: 0},
-  {q: 1,  r: -1},
-  {q: 0,  r: -1},
-  {q: -1, r: 0},
-  {q: -1, r: 1},
-  {q: 0,  r: 1}
+  { q: 1, r: 0 },
+  { q: 1, r: -1 },
+  { q: 0, r: -1 },
+  { q: -1, r: 0 },
+  { q: -1, r: 1 },
+  { q: 0, r: 1 }
 ];
 
 let board = {};
 let cells = [];
 let queue = [];
 let score = 0;
-let moves = 0;       // количество совершённых ходов
-let maxLevel = 1;    // максимальный достигнутый уровень
+let moves = 0;
+let maxLevel = 1;
 let gameOver = false;
 
 const boardDiv = document.getElementById("board");
 const queueDiv = document.getElementById("queue");
 const scoreDiv = document.getElementById("score");
-const gameOverOverlay = document.getElementById("gameOverOverlay");
+const gameOverDiv = document.getElementById("gameOver");
 
 document.addEventListener("DOMContentLoaded", () => {
   initGame();
@@ -41,8 +41,8 @@ function createBoard() {
     const r1 = Math.max(-BOARD_RADIUS, -q - BOARD_RADIUS);
     const r2 = Math.min(BOARD_RADIUS, -q + BOARD_RADIUS);
     for (let r = r1; r <= r2; r++) {
-      const x = HEX_RADIUS * Math.sqrt(3) * (q + r/2);
-      const y = HEX_RADIUS * 3/2 * r;
+      const x = HEX_RADIUS * Math.sqrt(3) * (q + r / 2);
+      const y = HEX_RADIUS * 3 / 2 * r;
       minX = Math.min(minX, x);
       maxX = Math.max(maxX, x);
       minY = Math.min(minY, y);
@@ -64,8 +64,8 @@ function createBoard() {
   cells.forEach(cell => {
     const cellDiv = document.createElement("div");
     cellDiv.classList.add("cell");
-    const left = cell.x - minX + margin - CELL_DIAMETER/2;
-    const top  = cell.y - minY + margin - CELL_DIAMETER/2;
+    const left = cell.x - minX + margin - CELL_DIAMETER / 2;
+    const top = cell.y - minY + margin - CELL_DIAMETER / 2;
     cellDiv.style.left = left + "px";
     cellDiv.style.top = top + "px";
     cellDiv.addEventListener("click", () => {
@@ -104,8 +104,7 @@ function renderQueue() {
   queueDiv.innerHTML = "";
   queue.forEach(token => {
     const tokenDiv = document.createElement("div");
-    tokenDiv.classList.add("queue-token");
-    tokenDiv.style.color = token.color;
+    tokenDiv.classList.add("queue-token", token.color);
     tokenDiv.innerText = token.level;
     queueDiv.appendChild(tokenDiv);
   });
@@ -120,7 +119,7 @@ function placeToken(cell) {
   const token = queue.shift();
   cell.token = token;
   updateCell(cell);
-  moves++; // увеличиваем число ходов
+  moves++;
   queue.push(getRandomToken());
   renderQueue();
   checkMerge(cell);
@@ -131,8 +130,7 @@ function updateCell(cell) {
   cell.element.innerHTML = "";
   if (cell.token !== null) {
     const tokenDiv = document.createElement("div");
-    tokenDiv.classList.add("token");
-    tokenDiv.style.color = cell.token.color;
+    tokenDiv.classList.add("token", cell.token.color);
     tokenDiv.innerText = cell.token.level;
     cell.element.appendChild(tokenDiv);
   }
@@ -199,26 +197,23 @@ function checkGameOver() {
   const empty = cells.some(cell => cell.token === null);
   if (!empty) {
     gameOver = true;
+    gameOverDiv.style.display = "block";
     document.getElementById("newGame").style.display = "block";
-    // Показываем оверлей с Game Over
-    boardDiv.classList.add("show-game-over");
-    // Обновляем строку с предыдущим счётом (на английском)
-    document.getElementById("prevScore").innerText = "Previous Score: " + score;
     endGame(score, moves, maxLevel);
   }
 }
 
 function resetGame() {
   boardDiv.innerHTML = "";
-  boardDiv.classList.remove("show-game-over");
   queueDiv.innerHTML = "";
-  gameOver = false;
-  cells = [];
+  gameOverDiv.style.display = "none";
   board = {};
+  cells = [];
   queue = [];
   score = 0;
   moves = 0;
   maxLevel = 1;
+  gameOver = false;
   document.getElementById("newGame").style.display = "none";
   initGame();
 }

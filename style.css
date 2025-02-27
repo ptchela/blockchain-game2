@@ -1,20 +1,23 @@
 body {
-  background-color: #222;
+  background-color: #1a1a1a;
   font-family: sans-serif;
   text-align: center;
   user-select: none;
-  margin: 0;
-  padding: 0;
+  color: white;
+}
+
+#score {
+  font-size: 24px;
+  margin: 10px;
   color: #fff;
 }
 
-/* Стили для счёта и предыдущего результата */
-#score, #lastScore, #prevScore {
-  font-size: 20px;
+#lastScore {
+  font-size: 18px;
   margin: 10px;
+  color: #ccc;
 }
 
-/* Контейнер для очереди фишек */
 #queue {
   margin: 10px auto 20px auto;
   display: flex;
@@ -30,127 +33,80 @@ body {
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  color: #fff;
-  background-color: transparent;
-  /* Яркий цвет кружка – используется цвет, заданный через JS */
-  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-  transition: transform 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.queue-token::before {
-  content: "";
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 50%;
-  background: rgba(255,255,255,0.8);
-  border-radius: 50%;
-  transform: rotate(-20deg);
-}
-
-.queue-token:hover {
-  transform: scale(1.1);
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .queue-token:first-child {
-  border: 2px solid #fff;
+  border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
-/* Игровое поле с ярким ледяным видом */
 #board {
   position: relative;
   margin: 20px auto;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 20px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
   width: 350px;
   height: 310px;
-  background: linear-gradient(145deg, #00c6ff, #0072ff);
-  border: 5px solid #00bfff;
-  border-radius: 30px;
-  box-shadow: inset 0 0 20px rgba(0,255,255,0.3), 0 4px 15px rgba(0,0,0,0.5);
-  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-/* Оверлей для Game Over – покрывает всё поле */
-#gameOverOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 64px;
-  font-weight: bold;
-  color: #ffea00;
-  text-shadow: 0 0 10px #ffea00, 0 0 20px #ffea00;
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-
-/* Когда игра окончена, делаем оверлей видимым */
-.show-game-over #gameOverOverlay {
-  opacity: 1;
-}
-
-/* Ячейка поля – круглая область */
 .cell {
   position: absolute;
   width: 40px;
   height: 40px;
-  border: 1px dashed rgba(255,255,255,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   box-sizing: border-box;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  background: rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .cell:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Фишка внутри ячейки – объёмная, яркая, с бликами */
 .token {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background-color: currentColor;
-  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
+  color: white;
   font-size: 18px;
-  color: #fff;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
-  overflow: hidden;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2));
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.token::before {
-  content: "";
+.token.red {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 100, 100, 0.8), rgba(255, 50, 50, 0.2));
+  box-shadow: 0 0 10px rgba(255, 100, 100, 0.5), inset 0 0 10px rgba(255, 100, 100, 0.3);
+}
+
+.token.blue {
+  background: radial-gradient(circle at 30% 30%, rgba(100, 100, 255, 0.8), rgba(50, 50, 255, 0.2));
+  box-shadow: 0 0 10px rgba(100, 100, 255, 0.5), inset 0 0 10px rgba(100, 100, 255, 0.3);
+}
+
+#gameOver {
   position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 40%;
-  background: rgba(255,255,255,0.9);
-  border-radius: 50%;
-  transform: rotate(-25deg);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: #ff4d4d;
+  text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
+  z-index: 1000;
+  display: none;
 }
 
-.token:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.6);
-}
-
-/* Кнопка New Game */
 #newGame, .new-game {
   position: fixed;
   bottom: 20px;
@@ -158,7 +114,7 @@ body {
   transform: translateX(-50%);
   padding: 15px 30px;
   font-size: 20px;
-  background-color: #ff5722;
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 10px;
