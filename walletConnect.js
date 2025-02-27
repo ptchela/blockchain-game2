@@ -29,9 +29,13 @@ let signer;
 let contract;
 let walletType = null;
 
+// Monad Testnet details
+const MONAD_CHAIN_ID = "0x279f"; // Hex representation of 10143
+const MONAD_RPC_URL = "https://testnet-rpc.monad.xyz";
+
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectWallet").addEventListener("click", connectWallet);
-    // Если нужно автоподключение, раскомментируйте:
+    // Uncomment below line if you want auto-connection
     // connectWallet();
 });
 
@@ -51,9 +55,52 @@ async function connectWallet() {
     }
 
     try {
+        // Request account access
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        // Check the current chain ID
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId !== MONAD_CHAIN_ID) {
+            alert("You are on the wrong network. Attempting to switch to Monad Testnet...");
+            try {
+                // Request to switch the network to Monad Testnet
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: MONAD_CHAIN_ID }],
+                });
+            } catch (switchError) {
+                // If the network is not added, you can attempt to add it
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: "wallet_addEthereumChain",
+                            params: [{
+                                chainId: MONAD_CHAIN_ID,
+                                chainName: "Monad Testnet",
+                                nativeCurrency: {
+                                    name: "MON",
+                                    symbol: "MON",
+                                    decimals: 18,
+                                },
+                                rpcUrls: [MONAD_RPC_URL],
+                                blockExplorerUrls: [], // Add explorer URL if available
+                            }],
+                        });
+                    } catch (addError) {
+                        console.error("Failed to add Monad Testnet", addError);
+                        alert("Failed to add Monad Testnet. Please add it manually.");
+                        return;
+                    }
+                } else {
+                    console.error("Failed to switch network", switchError);
+                    alert("Network switch failed. Please switch to Monad Testnet manually.");
+                    return;
+                }
+            }
+        }
+
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
         updateBestScore();
     } catch (err) {
