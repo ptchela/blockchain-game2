@@ -38,30 +38,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * Переинициализирует provider, signer и контракт в случае смены сети или по необходимости.
+ * Переинициализирует provider, signer и контракт
  */
 function reInitProvider() {
     console.log("Re-initializing provider due to chain change or manual call...");
 
-    // 1. Проверяем наличие Rabby
     if (window.rabby) {
         provider = new ethers.providers.Web3Provider(window.rabby);
         walletType = "Rabby";
         console.log("Using Rabby wallet");
     }
-    // 2. Проверяем наличие Phantom через window.phantom.ethereum
     else if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
         provider = new ethers.providers.Web3Provider(window.phantom.ethereum);
         walletType = "Phantom";
         console.log("Using Phantom EVM provider from window.phantom.ethereum");
     }
-    // 3. Проверяем, если есть Ethereum провайдер с isPhantom
     else if (window.ethereum && window.ethereum.isPhantom) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "Phantom";
         console.log("Using Phantom EVM provider from window.ethereum");
     }
-    // 4. Fallback: generic Ethereum provider (MetaMask, etc.)
     else if (window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "MetaMask";
@@ -76,7 +72,7 @@ function reInitProvider() {
 }
 
 /**
- * Основная функция для подключения кошелька и обеспечения работы в сети Monad Testnet.
+ * Основная функция для подключения кошелька и работы в сети Monad Testnet
  */
 async function connectWallet() {
     // Определяем кошелек по порядку
@@ -106,7 +102,7 @@ async function connectWallet() {
         return;
     }
 
-    // Подписываем событие смены сети
+    // Подписываем события смены сети и аккаунтов
     if (provider.provider && provider.provider.on) {
         provider.provider.on("chainChanged", (newChainId) => {
             console.log("chainChanged event detected:", newChainId);
@@ -115,10 +111,14 @@ async function connectWallet() {
                 alert("Please switch to Monad Testnet (chain ID 0x279f) for full functionality.");
             }
         });
+        provider.provider.on("accountsChanged", (accounts) => {
+            console.log("accountsChanged event detected:", accounts);
+            updateBestScore();
+        });
     }
 
     try {
-        // Если MetaMask, проверяем, на нужной ли сети
+        // Если MetaMask, проверяем, находится ли кошелек в нужной сети
         if (walletType === "MetaMask") {
             const currentChainId = await provider.send("eth_chainId", []);
             console.log("Current chain ID:", currentChainId);
@@ -157,23 +157,36 @@ async function connectWallet() {
             }
         }
 
-        // Проверяем, есть ли уже подключенные аккаунты
-        const accounts = await provider.send("eth_accounts", []);
-        if (accounts.length === 0) {
-            await provider.send("eth_requestAccounts", []);
-        } else {
-            console.log("Accounts already connected:", accounts);
-        }
+        // Всегда запрашиваем аккаунты, чтобы обновить signer
+        await provider.send("eth_requestAccounts", []);
 
-        // Переинициализируем signer и контракт после подключения аккаунтов
+        // Переинициализируем signer и контракт
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
-        // Небольшая задержка, чтобы дать время обновиться signer/контракту перед запросом best score
-        setTimeout(updateBestScore, 100);
+        // Вызываем обновление best score сразу после подключения
+        updateBestScore();
     } catch (err) {
         console.error("Wallet connection failed:", err);
+    }
+}
+
+/**
+ * Обновляет лучший результат, полученный из контракта
+ */
+async function updateBestScore() {
+    if (!signer) return;
+    try {
+        const playerAddress = await signer.getAddress();
+        const result = await contract.getBestScore(playerAddress);
+        const points = result[0].toString();
+        const moves = result[1].toString();
+        const level = result[2].toString();
+        document.getElementById("lastScore").innerText = `Best Score: ${points} (Moves: ${moves}, Level: ${level})`;
+    } catch (error) {
+        console.error("Error fetching best score:", error);
+        document.getElementById("lastScore").innerText = "Best Score: No record found";
     }
 }
 
@@ -205,24 +218,6 @@ async function recordGameResult(points, moves, level) {
     } catch (error) {
         console.error("Error recording score:", error);
         alert("Error recording score: " + error.message);
-    }
-}
-
-/**
- * Обновляет лучший результат, полученный из контракта
- */
-async function updateBestScore() {
-    if (!signer) return;
-    try {
-        const playerAddress = await signer.getAddress();
-        const result = await contract.getBestScore(playerAddress);
-        const points = result[0].toString();
-        const moves = result[1].toString();
-        const level = result[2].toString();
-        document.getElementById("lastScore").innerText = `Best Score: ${points} (Moves: ${moves}, Level: ${level})`;
-    } catch (error) {
-        console.error("Error fetching best score:", error);
-        document.getElementById("lastScore").innerText = "Best Score: No record found";
     }
 }
 
