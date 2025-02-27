@@ -38,6 +38,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
+ * Функция, которая опрашивает список аккаунтов до их появления.
+ */
+async function waitForAccounts(timeout = 5000, interval = 500) {
+    const start = Date.now();
+    let accounts = [];
+    while (Date.now() - start < timeout) {
+        accounts = await provider.listAccounts();
+        if (accounts.length > 0) {
+            return accounts;
+        }
+        await new Promise(resolve => setTimeout(resolve, interval));
+    }
+    return accounts;
+}
+
+/**
  * Re-initialize provider, signer, and contract based on whichever wallet is present.
  */
 function reInitProvider() {
@@ -67,7 +83,7 @@ function reInitProvider() {
 }
 
 /**
- * Main function to connect the wallet and ensure we are on Monad Testnet.
+ * Основная функция для подключения кошелька и проверки сети.
  */
 async function connectWallet() {
     if (window.rabby) {
@@ -107,7 +123,6 @@ async function connectWallet() {
             updateUI(accounts);
         });
 
-        // Некоторые кошельки (например, MetaMask) эмитят событие "connect"
         provider.provider.on("connect", (connectInfo) => {
             console.log("connect event detected:", connectInfo);
             updateUI();
@@ -117,8 +132,8 @@ async function connectWallet() {
     try {
         // Запрашиваем доступ к аккаунтам
         await provider.send("eth_requestAccounts", []);
-        // Получаем аккаунты сразу после запроса
-        const accounts = await provider.listAccounts();
+        // Ждём, пока аккаунты обновятся
+        const accounts = await waitForAccounts();
         if (accounts.length === 0) {
             console.warn("No accounts returned after connection.");
         }
@@ -136,7 +151,8 @@ async function connectWallet() {
                 console.log("Switched to Monad Testnet successfully!");
                 reInitProvider();
                 await provider.send("eth_requestAccounts", []);
-                updateUI();
+                const newAccounts = await waitForAccounts();
+                updateUI(newAccounts);
             } catch (switchError) {
                 if (switchError.code === 4902) {
                     try {
@@ -153,7 +169,8 @@ async function connectWallet() {
                         }]);
                         reInitProvider();
                         await provider.send("eth_requestAccounts", []);
-                        updateUI();
+                        const newAccounts = await waitForAccounts();
+                        updateUI(newAccounts);
                     } catch (addError) {
                         console.error("Failed to add Monad Testnet:", addError);
                         alert("Failed to add Monad Testnet. Please add it manually.");
@@ -176,7 +193,6 @@ async function connectWallet() {
  */
 async function updateUI(accounts) {
     try {
-        // Если accounts не переданы, получаем их
         if (!accounts) {
             accounts = await provider.listAccounts();
         }
