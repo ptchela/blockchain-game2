@@ -1,4 +1,4 @@
-const CONTRACT_ADDRESS = "0x29499c5603B2604d1d34487EfC0e2D9c504534de";
+const CONTRACT_ADDRESS = "0xe84f6DfbF2Bc1c78c831C45e761214aDD7f667ef";
 const CONTRACT_ABI = [
     {
         "inputs": [
@@ -13,7 +13,7 @@ const CONTRACT_ABI = [
     },
     {
         "inputs": [{ "internalType": "address", "name": "player", "type": "address" }],
-        "name": "getLastScore",
+        "name": "getBestScore",
         "outputs": [
             { "internalType": "uint256", "name": "points", "type": "uint256" },
             { "internalType": "uint256", "name": "moves", "type": "uint256" },
@@ -74,7 +74,7 @@ async function recordGameResult(points, moves, level) {
             console.log("Gas estimate:", gasLimit.toString());
         } catch (e) {
             console.warn("Gas estimation failed, using default gas limit.", e);
-            gasLimit = 300000; // Установите значение, подходящее для вашего контракта
+            gasLimit = 300000;
         }
         const tx = await contract.recordScore(points, moves, level, { gasLimit: gasLimit });
         console.log("Transaction sent:", tx.hash);
@@ -93,8 +93,7 @@ async function updateBestScore() {
     if (!signer) return;
     try {
         const playerAddress = await signer.getAddress();
-        const result = await contract.getLastScore(playerAddress);
-        // result – массив [points, moves, level]
+        const result = await contract.getBestScore(playerAddress);
         const points = result[0].toString();
         const moves = result[1].toString();
         const level = result[2].toString();
@@ -111,5 +110,4 @@ function endGame(points, moves, level) {
     recordGameResult(points, moves, level);
 }
 
-// Делаем функцию endGame глобально доступной для game.js
 window.endGame = endGame;
