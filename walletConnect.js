@@ -165,11 +165,13 @@ async function connectWallet() {
             console.log("Accounts already connected:", accounts);
         }
 
+        // Переинициализируем signer и контракт после подключения аккаунтов
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
-        updateBestScore();
+        // Небольшая задержка, чтобы дать время обновиться signer/контракту перед запросом best score
+        setTimeout(updateBestScore, 100);
     } catch (err) {
         console.error("Wallet connection failed:", err);
     }
