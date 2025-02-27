@@ -7,14 +7,24 @@ body {
   padding: 0;
 }
 
-/* Стили для заголовков и счёта */
+/* Стили для статусов кошелька и счёта */
+#walletStatus {
+  font-size: 12px; /* уменьшен размер для надписи Connected Metamask */
+  margin: 10px;
+}
+
 #score {
   font-size: 20px;
   margin: 10px;
 }
 
-#lastScore, #prevScore {
-  font-size: 16px;
+#lastScore {
+  font-size: 16px; /* Best Score */
+  margin: 10px;
+}
+
+#prevScore {
+  font-size: 12px; /* Previous Score уменьшен */
   margin: 10px;
 }
 
@@ -63,7 +73,6 @@ body {
 }
 
 /* Контейнер игрового поля с ледяным оформлением */
-/* Увеличена ширина и высота поля */
 #board {
   position: relative;
   margin: 20px auto;
