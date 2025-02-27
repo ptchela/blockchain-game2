@@ -121,15 +121,27 @@ async function connectWallet() {
                 alert("Please switch to Monad Testnet (chain ID 0x279f) for full functionality.");
             }
         });
+
+        // Добавляем слушатель для события смены аккаунтов, чтобы обновлять UI сразу
+        provider.provider.on("accountsChanged", (accounts) => {
+            console.log("accountsChanged event detected:", accounts);
+            updateBestScore();
+        });
     }
 
     try {
         // Request access to accounts
         await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-        // Check the current chain
+        // Небольшая задержка, чтобы данные успели обновиться
+        setTimeout(() => {
+            signer = provider.getSigner();
+            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
+            updateBestScore();
+        }, 500);
+
+        // Проверяем цепочку
         const currentChainId = await provider.send("eth_chainId", []);
         console.log("Current chain ID:", currentChainId);
 
@@ -138,12 +150,13 @@ async function connectWallet() {
             try {
                 await provider.send("wallet_switchEthereumChain", [{ chainId: MONAD_CHAIN_ID }]);
                 console.log("Switched to Monad Testnet successfully!");
-                // After successful switch, re-init so ethers knows about the new chain
+                // После переключения переинициализируем
                 reInitProvider();
-                // Re-request accounts on the new chain
                 await provider.send("eth_requestAccounts", []);
+                // Обновляем статус после переключения сети
+                document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
+                updateBestScore();
             } catch (switchError) {
-                // If the network is not added, attempt to add it
                 if (switchError.code === 4902) {
                     try {
                         await provider.send("wallet_addEthereumChain", [{
@@ -157,9 +170,10 @@ async function connectWallet() {
                             rpcUrls: [MONAD_RPC_URL],
                             blockExplorerUrls: [] // Optionally add a block explorer URL
                         }]);
-                        // If successfully added, re-init
                         reInitProvider();
                         await provider.send("eth_requestAccounts", []);
+                        document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
+                        updateBestScore();
                     } catch (addError) {
                         console.error("Failed to add Monad Testnet:", addError);
                         alert("Failed to add Monad Testnet. Please add it manually.");
@@ -172,9 +186,6 @@ async function connectWallet() {
                 }
             }
         }
-
-        document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
-        updateBestScore();
     } catch (err) {
         console.error("Wallet connection failed:", err);
     }
