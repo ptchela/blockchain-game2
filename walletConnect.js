@@ -38,67 +38,68 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * Re-initialize provider, signer, and contract based on whichever wallet is present.
- * This is called after chain changes or any time we need a fresh provider.
+ * Обновляет отображение статуса подключения
+ */
+function updateWalletStatus() {
+    document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
+}
+
+/**
+ * Пересоздает provider, signer и contract в зависимости от найденного кошелька.
  */
 function reInitProvider() {
-    console.log("Re-initializing provider due to chain change or manual call...");
-
-    // 1. Check for Rabby first
+    console.log("Re-initializing provider...");
+    // 1. Проверяем Rabby
     if (window.rabby) {
         provider = new ethers.providers.Web3Provider(window.rabby);
         walletType = "Rabby";
         console.log("Using Rabby wallet");
     }
-    // 2. Check for Phantom EVM via window.phantom.ethereum
+    // 2. Проверяем Phantom через window.phantom.ethereum
     else if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
         provider = new ethers.providers.Web3Provider(window.phantom.ethereum);
         walletType = "Phantom";
-        console.log("Using Phantom EVM provider from window.phantom.ethereum");
+        console.log("Using Phantom via window.phantom.ethereum");
     }
-    // 3. Fallback: check if there's an Ethereum provider with isPhantom
+    // 3. Проверяем Phantom через window.ethereum
     else if (window.ethereum && window.ethereum.isPhantom) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "Phantom";
-        console.log("Using Phantom EVM provider from window.ethereum");
+        console.log("Using Phantom via window.ethereum");
     }
-    // 4. Fallback: generic Ethereum provider (MetaMask, etc.)
+    // 4. Общий вариант для MetaMask или другого провайдера
     else if (window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "MetaMask";
         console.log("Using generic Ethereum provider (MetaMask or similar)");
     } else {
-        console.error("No recognized provider found during re-initialization.");
+        console.error("No recognized provider found.");
         return;
     }
-
     signer = provider.getSigner();
     contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 }
 
 /**
- * Main function to connect the wallet and ensure we are on Monad Testnet.
+ * Основная функция для подключения кошелька и переключения сети.
  */
 async function connectWallet() {
-    // 1. Check for Rabby first
+    // Определяем провайдера
     if (window.rabby) {
         console.log("Detected Rabby wallet");
         provider = new ethers.providers.Web3Provider(window.rabby);
         walletType = "Rabby";
     }
-    // 2. Check for Phantom via window.phantom.ethereum
     else if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
         console.log("Detected Phantom via window.phantom.ethereum");
         provider = new ethers.providers.Web3Provider(window.phantom.ethereum);
         walletType = "Phantom";
     }
-    // 3. Check for Phantom via window.ethereum
     else if (window.ethereum && window.ethereum.isPhantom) {
         console.log("Detected Phantom via window.ethereum");
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "Phantom";
     }
-    // 4. Fallback: generic Ethereum provider (MetaMask, etc.)
     else if (window.ethereum) {
         console.log("Detected generic Ethereum provider (MetaMask, etc.)");
         provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -110,40 +111,39 @@ async function connectWallet() {
         return;
     }
 
-    // Listen for chain changes and re-initialize whenever the user switches networks
+    // Устанавливаем слушатель событий смены цепочки
     if (provider.provider && provider.provider.on) {
-        provider.provider.on("chainChanged", (newChainId) => {
+        provider.provider.on("chainChanged", async (newChainId) => {
             console.log("chainChanged event detected:", newChainId);
-            // Re-initialize the provider, signer, and contract
             reInitProvider();
-            // Optionally, you could check if it's the correct chain
             if (newChainId.toLowerCase() !== MONAD_CHAIN_ID) {
                 alert("Please switch to Monad Testnet (chain ID 0x279f) for full functionality.");
             }
+            updateWalletStatus();
         });
     }
 
     try {
-        // Request access to accounts
+        // Запрашиваем доступ к аккаунтам
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-        // Check the current chain
+        // Проверяем текущую цепочку
         const currentChainId = await provider.send("eth_chainId", []);
         console.log("Current chain ID:", currentChainId);
 
+        // Если сеть не Monad, пытаемся переключиться
         if (currentChainId !== MONAD_CHAIN_ID) {
             alert("You are on the wrong network. Attempting to switch to Monad Testnet...");
             try {
                 await provider.send("wallet_switchEthereumChain", [{ chainId: MONAD_CHAIN_ID }]);
                 console.log("Switched to Monad Testnet successfully!");
-                // After successful switch, re-init so ethers knows about the new chain
+                // Ждём завершения переключения
+                await new Promise(res => setTimeout(res, 1000));
                 reInitProvider();
-                // Re-request accounts on the new chain
                 await provider.send("eth_requestAccounts", []);
             } catch (switchError) {
-                // If the network is not added, attempt to add it
                 if (switchError.code === 4902) {
                     try {
                         await provider.send("wallet_addEthereumChain", [{
@@ -155,9 +155,9 @@ async function connectWallet() {
                                 decimals: 18
                             },
                             rpcUrls: [MONAD_RPC_URL],
-                            blockExplorerUrls: [] // Optionally add a block explorer URL
+                            blockExplorerUrls: [] // Опционально
                         }]);
-                        // If successfully added, re-init
+                        await new Promise(res => setTimeout(res, 1000));
                         reInitProvider();
                         await provider.send("eth_requestAccounts", []);
                     } catch (addError) {
@@ -173,7 +173,7 @@ async function connectWallet() {
             }
         }
 
-        document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
+        updateWalletStatus();
         updateBestScore();
     } catch (err) {
         console.error("Wallet connection failed:", err);
@@ -181,7 +181,7 @@ async function connectWallet() {
 }
 
 /**
- * Record the game result on-chain
+ * Записывает результат игры в блокчейн
  */
 async function recordGameResult(points, moves, level) {
     if (!signer) {
@@ -212,7 +212,7 @@ async function recordGameResult(points, moves, level) {
 }
 
 /**
- * Update the best score from the contract
+ * Обновляет отображение лучшего результата из контракта
  */
 async function updateBestScore() {
     if (!signer) return;
@@ -230,7 +230,7 @@ async function updateBestScore() {
 }
 
 /**
- * Called at the end of the game
+ * Вызывается в конце игры
  */
 function endGame(points, moves, level) {
     console.log("Game Over! Score:", points, "Moves:", moves, "Level:", level);
@@ -238,5 +238,4 @@ function endGame(points, moves, level) {
     recordGameResult(points, moves, level);
 }
 
-// Expose endGame to the global scope
 window.endGame = endGame;
