@@ -2,12 +2,12 @@ const HEX_RADIUS = 30;
 const CELL_DIAMETER = 40;
 const BOARD_RADIUS = 3;
 const directions = [
-  {q: 1,  r: 0},
-  {q: 1,  r: -1},
-  {q: 0,  r: -1},
-  {q: -1, r: 0},
-  {q: -1, r: 1},
-  {q: 0,  r: 1}
+  { q: 1,  r: 0 },
+  { q: 1,  r: -1 },
+  { q: 0,  r: -1 },
+  { q: -1, r: 0 },
+  { q: -1, r: 1 },
+  { q: 0,  r: 1 }
 ];
 
 let board = {};
@@ -60,7 +60,8 @@ function createBoard() {
     }
   }
 
-  const margin = 20;
+  // Увеличенный margin для отступа от краёв игрового поля
+  const margin = 25;
   cells.forEach(cell => {
     const cellDiv = document.createElement("div");
     cellDiv.classList.add("cell");
@@ -210,7 +211,7 @@ function checkGameOver() {
 function resetGame() {
   boardDiv.innerHTML = "";
   boardDiv.classList.remove("show-game-over");
-  boardDiv.appendChild(gameOverDiv); // Добавляем надпись обратно
+  boardDiv.appendChild(gameOverDiv); // Добавляем надпись Game Over обратно
   queueDiv.innerHTML = "";
   gameOver = false;
   cells = [];
