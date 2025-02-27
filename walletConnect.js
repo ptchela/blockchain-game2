@@ -44,29 +44,29 @@ document.addEventListener("DOMContentLoaded", () => {
 function reInitProvider() {
     console.log("Re-initializing provider due to chain change or manual call...");
 
-    // Detect Phantom EVM
-    if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
+    // 1. Check for Rabby first
+    if (window.rabby) {
+        provider = new ethers.providers.Web3Provider(window.rabby);
+        walletType = "Rabby";
+        console.log("Using Rabby wallet");
+    }
+    // 2. Check for Phantom EVM via window.phantom.ethereum
+    else if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
         provider = new ethers.providers.Web3Provider(window.phantom.ethereum);
         walletType = "Phantom";
         console.log("Using Phantom EVM provider from window.phantom.ethereum");
     }
-    // Fallback: check if there's an Ethereum provider with isPhantom
+    // 3. Fallback: check if there's an Ethereum provider with isPhantom
     else if (window.ethereum && window.ethereum.isPhantom) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "Phantom";
         console.log("Using Phantom EVM provider from window.ethereum");
     }
-    // Fallback: generic Ethereum provider (MetaMask, etc.)
+    // 4. Fallback: generic Ethereum provider (MetaMask, etc.)
     else if (window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "MetaMask";
         console.log("Using generic Ethereum provider (MetaMask or similar)");
-    }
-    // Check Rabby
-    else if (window.rabby) {
-        provider = new ethers.providers.Web3Provider(window.rabby);
-        walletType = "Rabby";
-        console.log("Using Rabby wallet");
     } else {
         console.error("No recognized provider found during re-initialization.");
         return;
@@ -80,26 +80,29 @@ function reInitProvider() {
  * Main function to connect the wallet and ensure we are on Monad Testnet.
  */
 async function connectWallet() {
-    // First, try to detect any wallet
-    if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
+    // 1. Check for Rabby first
+    if (window.rabby) {
+        console.log("Detected Rabby wallet");
+        provider = new ethers.providers.Web3Provider(window.rabby);
+        walletType = "Rabby";
+    }
+    // 2. Check for Phantom via window.phantom.ethereum
+    else if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
         console.log("Detected Phantom via window.phantom.ethereum");
         provider = new ethers.providers.Web3Provider(window.phantom.ethereum);
         walletType = "Phantom";
     }
+    // 3. Check for Phantom via window.ethereum
     else if (window.ethereum && window.ethereum.isPhantom) {
         console.log("Detected Phantom via window.ethereum");
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "Phantom";
     }
+    // 4. Fallback: generic Ethereum provider (MetaMask, etc.)
     else if (window.ethereum) {
         console.log("Detected generic Ethereum provider (MetaMask, etc.)");
         provider = new ethers.providers.Web3Provider(window.ethereum);
         walletType = "MetaMask";
-    }
-    else if (window.rabby) {
-        console.log("Detected Rabby wallet");
-        provider = new ethers.providers.Web3Provider(window.rabby);
-        walletType = "Rabby";
     }
     else {
         alert("No supported wallet found! Please install Phantom or another EVM wallet.");
