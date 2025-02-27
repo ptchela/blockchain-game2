@@ -1,14 +1,15 @@
 body {
-  background-color: #eee;
+  background-color: #222;
   font-family: sans-serif;
   text-align: center;
   user-select: none;
   margin: 0;
   padding: 0;
+  color: #fff;
 }
 
-/* Стили для заголовков и счёта */
-#score {
+/* Стили для счёта и предыдущего результата */
+#score, #lastScore, #prevScore {
   font-size: 20px;
   margin: 10px;
 }
@@ -29,10 +30,25 @@ body {
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  color: white;
-  background: radial-gradient(circle, rgba(255,255,255,0.6) 30%, currentColor 90%);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  color: #fff;
+  background-color: transparent;
+  /* Яркий цвет кружка – используется цвет, заданный через JS */
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
   transition: transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.queue-token::before {
+  content: "";
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 50%;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  transform: rotate(-20deg);
 }
 
 .queue-token:hover {
@@ -40,84 +56,101 @@ body {
 }
 
 .queue-token:first-child {
-  border: 2px solid #00000060;
+  border: 2px solid #fff;
 }
 
-/* Контейнер игрового поля с ледяным оформлением */
+/* Игровое поле с ярким ледяным видом */
 #board {
   position: relative;
   margin: 20px auto;
   width: 350px;
   height: 310px;
-  background: linear-gradient(145deg, #e0f7ff, #fff);
-  border: 5px solid #b0e0f7;
+  background: linear-gradient(145deg, #00c6ff, #0072ff);
+  border: 5px solid #00bfff;
   border-radius: 30px;
-  box-shadow: inset 0 0 20px rgba(255,255,255,0.8), 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: inset 0 0 20px rgba(0,255,255,0.3), 0 4px 15px rgba(0,0,0,0.5);
+  overflow: hidden;
 }
 
-/* Надпись Game Over: по центру поля, эффектная и крупная */
-#gameOver {
+/* Оверлей для Game Over – покрывает всё поле */
+#gameOverOverlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 48px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 64px;
   font-weight: bold;
-  color: #fff;
-  text-shadow: 0 0 10px #000, 0 0 20px #00f;
-  background: linear-gradient(45deg, #00f, #0ff);
-  padding: 20px 40px;
-  border-radius: 20px;
+  color: #ffea00;
+  text-shadow: 0 0 10px #ffea00, 0 0 20px #ffea00;
   opacity: 0;
   transition: opacity 0.5s;
-  pointer-events: none;
 }
 
-/* При окончании игры делаем надпись видимой */
-.show-game-over #gameOver {
+/* Когда игра окончена, делаем оверлей видимым */
+.show-game-over #gameOverOverlay {
   opacity: 1;
 }
 
-/* Ячейка поля – круглая область с лёгким ледяным эффектом */
+/* Ячейка поля – круглая область */
 .cell {
   position: absolute;
   width: 40px;
   height: 40px;
-  border: 1px dashed #aaa;
+  border: 1px dashed rgba(255,255,255,0.5);
   border-radius: 50%;
   box-sizing: border-box;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .cell:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
 }
 
-/* Фишка внутри ячейки: объёмная, блестящая и выпуклая */
+/* Фишка внутри ячейки – объёмная, яркая, с бликами */
 .token {
   width: 100%;
   height: 100%;
   border-radius: 50%;
+  background-color: currentColor;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  color: #fff;
   font-size: 18px;
-  background: radial-gradient(circle, rgba(255,255,255,0.8) 20%, currentColor 70%);
-  box-shadow: inset 0 -2px 6px rgba(255,255,255,0.7), 0 4px 8px rgba(0,0,0,0.3);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
   transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.token::before {
+  content: "";
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 40%;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  transform: rotate(-25deg);
 }
 
 .token:hover {
   transform: scale(1.05);
-  box-shadow: inset 0 -2px 6px rgba(255,255,255,0.9), 0 6px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.6);
 }
 
-/* Стили для кнопки New Game */
+/* Кнопка New Game */
 #newGame, .new-game {
   position: fixed;
   bottom: 20px;
@@ -125,7 +158,7 @@ body {
   transform: translateX(-50%);
   padding: 15px 30px;
   font-size: 20px;
-  background-color: #4CAF50;
+  background-color: #ff5722;
   color: white;
   border: none;
   border-radius: 10px;

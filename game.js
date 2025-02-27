@@ -21,7 +21,7 @@ let gameOver = false;
 const boardDiv = document.getElementById("board");
 const queueDiv = document.getElementById("queue");
 const scoreDiv = document.getElementById("score");
-const gameOverDiv = document.getElementById("gameOver");
+const gameOverOverlay = document.getElementById("gameOverOverlay");
 
 document.addEventListener("DOMContentLoaded", () => {
   initGame();
@@ -105,7 +105,7 @@ function renderQueue() {
   queue.forEach(token => {
     const tokenDiv = document.createElement("div");
     tokenDiv.classList.add("queue-token");
-    tokenDiv.style.backgroundColor = token.color;
+    tokenDiv.style.color = token.color;
     tokenDiv.innerText = token.level;
     queueDiv.appendChild(tokenDiv);
   });
@@ -132,7 +132,7 @@ function updateCell(cell) {
   if (cell.token !== null) {
     const tokenDiv = document.createElement("div");
     tokenDiv.classList.add("token");
-    tokenDiv.style.backgroundColor = cell.token.color;
+    tokenDiv.style.color = cell.token.color;
     tokenDiv.innerText = cell.token.level;
     cell.element.appendChild(tokenDiv);
   }
@@ -200,8 +200,10 @@ function checkGameOver() {
   if (!empty) {
     gameOver = true;
     document.getElementById("newGame").style.display = "block";
-    // Добавляем класс для отображения надписи Game Over по центру
+    // Показываем оверлей с Game Over
     boardDiv.classList.add("show-game-over");
+    // Обновляем строку с предыдущим счётом (на английском)
+    document.getElementById("prevScore").innerText = "Previous Score: " + score;
     endGame(score, moves, maxLevel);
   }
 }
