@@ -105,6 +105,7 @@ function renderQueue() {
   queue.forEach(token => {
     const tokenDiv = document.createElement("div");
     tokenDiv.classList.add("queue-token");
+    // Фон шарика задаётся напрямую (например, "red" или "blue")
     tokenDiv.style.backgroundColor = token.color;
     tokenDiv.innerText = token.level;
     queueDiv.appendChild(tokenDiv);
@@ -132,6 +133,7 @@ function updateCell(cell) {
   if (cell.token !== null) {
     const tokenDiv = document.createElement("div");
     tokenDiv.classList.add("token");
+    // Задаём фон шарика через инлайновый стиль (например, "red" или "blue")
     tokenDiv.style.backgroundColor = cell.token.color;
     tokenDiv.innerText = cell.token.level;
     cell.element.appendChild(tokenDiv);
@@ -200,14 +202,12 @@ function checkGameOver() {
   if (!empty) {
     gameOver = true;
     document.getElementById("newGame").style.display = "block";
-    // Добавляем класс для отображения надписи Game Over по центру
     boardDiv.classList.add("show-game-over");
     endGame(score, moves, maxLevel);
   }
 }
 
 function resetGame() {
-  // Очищаем игровое поле, но сохраняем элемент gameOver
   boardDiv.innerHTML = "";
   boardDiv.classList.remove("show-game-over");
   boardDiv.appendChild(gameOverDiv); // Добавляем надпись обратно
@@ -226,6 +226,8 @@ function resetGame() {
 function endGame(points, moves, level) {
   console.log("Game Over! Score:", points, "Moves:", moves, "Level:", level);
   recordGameResult(points, moves, level);
+  // Обновляем Previous Score элемент с результатом завершённой игры
+  document.getElementById("prevScore").innerText = "Previous Score: " + points;
 }
 
 // Экспортируем endGame в глобальную область для вызова из walletConnect.js

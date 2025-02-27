@@ -8,19 +8,27 @@ body {
 }
 
 /* Стили для заголовков и счёта */
-#score {
+#score, #lastScore, #prevScore {
   font-size: 20px;
   margin: 10px;
 }
 
 /* Контейнер для очереди фишек */
 #queue {
-  margin: 10px auto 20px auto;
+  margin: 10px auto 0 auto;
   display: flex;
   justify-content: center;
   gap: 10px;
 }
 
+/* Надпись Next под очередью */
+#next {
+  margin-top: 10px;
+  font-size: 20px;
+  color: #333;
+}
+
+/* Фишка в очереди */
 .queue-token {
   width: 40px;
   height: 40px;
