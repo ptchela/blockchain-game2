@@ -227,8 +227,6 @@ function resetGame() {
 function endGame(points, moves, level) {
   console.log("Game Over! Score:", points, "Moves:", moves, "Level:", level);
   recordGameResult(points, moves, level);
-  // Обновляем Previous Score элемент с результатом завершённой игры
-  document.getElementById("prevScore").innerText = "Previous Score: " + points;
 }
 
 // Экспортируем endGame в глобальную область для вызова из walletConnect.js

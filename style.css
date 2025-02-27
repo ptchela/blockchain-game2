@@ -9,7 +9,7 @@ body {
 
 /* Стили для статусов кошелька и счёта */
 #walletStatus {
-  font-size: 12px; /* уменьшен размер для надписи Connected Metamask */
+  font-size: 12px;
   margin: 10px;
 }
 
@@ -19,12 +19,7 @@ body {
 }
 
 #lastScore {
-  font-size: 16px; /* Best Score */
-  margin: 10px;
-}
-
-#prevScore {
-  font-size: 12px; /* Previous Score уменьшен */
+  font-size: 16px;
   margin: 10px;
 }
 
