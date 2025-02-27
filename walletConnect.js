@@ -30,7 +30,7 @@ let contract;
 let walletType = null;
 
 // Monad Testnet details
-const MONAD_CHAIN_ID = "0x279f"; // Hex representation of 10143
+const MONAD_CHAIN_ID = "0x279f"; // Hex for 10143
 const MONAD_RPC_URL = "https://testnet-rpc.monad.xyz";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -40,31 +40,42 @@ document.addEventListener("DOMContentLoaded", () => {
 async function connectWallet() {
     let providerInfo = null;
 
-    // Check if Phantom (with EVM support) is available
-    if (window.ethereum && window.ethereum.isPhantom) {
+    // First, check for Phantom's EVM provider
+    if (window?.phantom?.ethereum && window.phantom.ethereum.isPhantom) {
+        providerInfo = {
+            provider: new ethers.providers.Web3Provider(window.phantom.ethereum),
+            walletType: "Phantom"
+        };
+        console.log("Detected Phantom via window.phantom.ethereum");
+    }
+    // If Phantom's EVM provider is not found, check for any Ethereum provider with isPhantom flag
+    else if (window.ethereum && window.ethereum.isPhantom) {
         providerInfo = {
             provider: new ethers.providers.Web3Provider(window.ethereum),
             walletType: "Phantom"
         };
-    } else if (window.ethereum) {
-        // Fallback for MetaMask or other Ethereum providers
+        console.log("Detected Phantom via window.ethereum");
+    }
+    // Fallback: use generic Ethereum provider (e.g. MetaMask)
+    else if (window.ethereum) {
         providerInfo = {
             provider: new ethers.providers.Web3Provider(window.ethereum),
             walletType: "MetaMask"
         };
-    } else if (window.solana && window.solana.isPhantom) {
-        // This branch is for Phantom without EVM support (likely not usable for our game)
-        providerInfo = {
-            provider: new ethers.providers.Web3Provider(window.solana),
-            walletType: "Phantom (Solana)"
-        };
-    } else if (window.rabby) {
+        console.log("Detected generic Ethereum provider (MetaMask)");
+    }
+    // Optionally, check for other wallets like Rabby if needed
+    else if (window.rabby) {
         providerInfo = {
             provider: new ethers.providers.Web3Provider(window.rabby),
             walletType: "Rabby"
         };
-    } else {
-        alert("No supported wallet found!");
+        console.log("Detected Rabby wallet");
+    }
+    else {
+        // If no provider is found, prompt user to install Phantom
+        alert("No supported wallet found! Please install Phantom Wallet for Ethereum-based transactions.");
+        window.open("https://phantom.app/", "_blank");
         return;
     }
 
@@ -79,42 +90,36 @@ async function connectWallet() {
         signer = provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-        // Check the current chain ID
-        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        // Check current chain ID
+        const currentChainId = await provider.send("eth_chainId", []);
         if (currentChainId !== MONAD_CHAIN_ID) {
             alert("You are on the wrong network. Attempting to switch to Monad Testnet...");
             try {
-                // Request to switch the network to Monad Testnet
-                await window.ethereum.request({
-                    method: "wallet_switchEthereumChain",
-                    params: [{ chainId: MONAD_CHAIN_ID }],
-                });
+                // Attempt to switch network to Monad Testnet
+                await provider.send("wallet_switchEthereumChain", [{ chainId: MONAD_CHAIN_ID }]);
             } catch (switchError) {
-                // If the network is not added, attempt to add it
+                // If the network has not been added to the wallet, try to add it
                 if (switchError.code === 4902) {
                     try {
-                        await window.ethereum.request({
-                            method: "wallet_addEthereumChain",
-                            params: [{
-                                chainId: MONAD_CHAIN_ID,
-                                chainName: "Monad Testnet",
-                                nativeCurrency: {
-                                    name: "MON",
-                                    symbol: "MON",
-                                    decimals: 18,
-                                },
-                                rpcUrls: [MONAD_RPC_URL],
-                                blockExplorerUrls: [], // Optionally add an explorer URL if available
-                            }],
-                        });
+                        await provider.send("wallet_addEthereumChain", [{
+                            chainId: MONAD_CHAIN_ID,
+                            chainName: "Monad Testnet",
+                            nativeCurrency: {
+                                name: "MON",
+                                symbol: "MON",
+                                decimals: 18
+                            },
+                            rpcUrls: [MONAD_RPC_URL],
+                            blockExplorerUrls: [] // Optionally add a block explorer URL here
+                        }]);
                     } catch (addError) {
-                        console.error("Failed to add Monad Testnet", addError);
-                        alert("Failed to add Monad Testnet. Please add it manually.");
+                        console.error("Failed to add Monad Testnet:", addError);
+                        alert("Failed to add Monad Testnet. Please add it manually in your wallet.");
                         return;
                     }
                 } else {
-                    console.error("Failed to switch network", switchError);
-                    alert("Network switch failed. Please switch to Monad Testnet manually.");
+                    console.error("Failed to switch network:", switchError);
+                    alert("Network switch failed. Please switch to Monad Testnet manually in your wallet.");
                     return;
                 }
             }
@@ -123,7 +128,7 @@ async function connectWallet() {
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
         updateBestScore();
     } catch (err) {
-        console.error("Wallet connection failed", err);
+        console.error("Wallet connection failed:", err);
     }
 }
 
@@ -142,13 +147,13 @@ async function recordGameResult(points, moves, level) {
             console.warn("Gas estimation failed, using default gas limit.", e);
             gasLimit = 300000;
         }
-        const tx = await contract.recordScore(points, moves, level, { gasLimit: gasLimit });
+        const tx = await contract.recordScore(points, moves, level, { gasLimit });
         console.log("Transaction sent:", tx.hash);
         alert("Transaction sent. Please confirm in your wallet.");
         await tx.wait();
         console.log("Transaction confirmed:", tx.hash);
         alert("Score recorded on blockchain!");
-        await updateBestScore();
+        updateBestScore();
     } catch (error) {
         console.error("Error recording score:", error);
         alert("Error recording score: " + error.message);
