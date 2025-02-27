@@ -35,24 +35,43 @@ const MONAD_RPC_URL = "https://testnet-rpc.monad.xyz";
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectWallet").addEventListener("click", connectWallet);
-    // Uncomment below line if you want auto-connection
-    // connectWallet();
 });
 
 async function connectWallet() {
-    if (window.ethereum) {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        walletType = "MetaMask";
+    let providerInfo = null;
+
+    // Check if Phantom (with EVM support) is available
+    if (window.ethereum && window.ethereum.isPhantom) {
+        providerInfo = {
+            provider: new ethers.providers.Web3Provider(window.ethereum),
+            walletType: "Phantom"
+        };
+    } else if (window.ethereum) {
+        // Fallback for MetaMask or other Ethereum providers
+        providerInfo = {
+            provider: new ethers.providers.Web3Provider(window.ethereum),
+            walletType: "MetaMask"
+        };
     } else if (window.solana && window.solana.isPhantom) {
-        provider = new ethers.providers.Web3Provider(window.solana);
-        walletType = "Phantom";
+        // This branch is for Phantom without EVM support (likely not usable for our game)
+        providerInfo = {
+            provider: new ethers.providers.Web3Provider(window.solana),
+            walletType: "Phantom (Solana)"
+        };
     } else if (window.rabby) {
-        provider = new ethers.providers.Web3Provider(window.rabby);
-        walletType = "Rabby";
+        providerInfo = {
+            provider: new ethers.providers.Web3Provider(window.rabby),
+            walletType: "Rabby"
+        };
     } else {
         alert("No supported wallet found!");
         return;
     }
+
+    // Use the selected provider
+    const { provider: selectedProvider, walletType: selectedWalletType } = providerInfo;
+    provider = selectedProvider;
+    walletType = selectedWalletType;
 
     try {
         // Request account access
@@ -71,7 +90,7 @@ async function connectWallet() {
                     params: [{ chainId: MONAD_CHAIN_ID }],
                 });
             } catch (switchError) {
-                // If the network is not added, you can attempt to add it
+                // If the network is not added, attempt to add it
                 if (switchError.code === 4902) {
                     try {
                         await window.ethereum.request({
@@ -85,7 +104,7 @@ async function connectWallet() {
                                     decimals: 18,
                                 },
                                 rpcUrls: [MONAD_RPC_URL],
-                                blockExplorerUrls: [], // Add explorer URL if available
+                                blockExplorerUrls: [], // Optionally add an explorer URL if available
                             }],
                         });
                     } catch (addError) {
