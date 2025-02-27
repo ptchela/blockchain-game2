@@ -199,23 +199,24 @@ function checkGameOver() {
   const empty = cells.some(cell => cell.token === null);
   if (!empty) {
     gameOver = true;
-    gameOverDiv.innerText = "Game Over!";
     document.getElementById("newGame").style.display = "block";
+    // Добавляем класс для отображения надписи Game Over по центру
+    boardDiv.classList.add("show-game-over");
     endGame(score, moves, maxLevel);
   }
 }
 
 function resetGame() {
   boardDiv.innerHTML = "";
+  boardDiv.classList.remove("show-game-over");
   queueDiv.innerHTML = "";
-  gameOverDiv.innerText = "";
-  board = {};
+  gameOver = false;
   cells = [];
+  board = {};
   queue = [];
   score = 0;
   moves = 0;
   maxLevel = 1;
-  gameOver = false;
   document.getElementById("newGame").style.display = "none";
   initGame();
 }

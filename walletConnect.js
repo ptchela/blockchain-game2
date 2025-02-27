@@ -209,7 +209,6 @@ async function updateBestScore() {
  */
 function endGame(points, moves, level) {
     console.log("Game Over! Score:", points, "Moves:", moves, "Level:", level);
-    document.getElementById("gameOver").innerText = "Game Over!";
     recordGameResult(points, moves, level);
 }
 
