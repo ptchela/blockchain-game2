@@ -72,6 +72,23 @@ function reInitProvider() {
 }
 
 /**
+ * Обновляет лучший результат, полученный из контракта, используя переданный адрес
+ */
+async function updateBestScoreWithAccount(account) {
+    try {
+        const result = await contract.getBestScore(account);
+        const points = result[0].toString();
+        const moves = result[1].toString();
+        const level = result[2].toString();
+        document.getElementById("lastScore").innerText =
+            `Best Score: ${points} (Moves: ${moves}, Level: ${level})`;
+    } catch (error) {
+        console.error("Error fetching best score:", error);
+        document.getElementById("lastScore").innerText = "Best Score: No record found";
+    }
+}
+
+/**
  * Основная функция для подключения кошелька и работы в сети Monad Testnet
  */
 async function connectWallet() {
@@ -113,7 +130,9 @@ async function connectWallet() {
         });
         provider.provider.on("accountsChanged", (accounts) => {
             console.log("accountsChanged event detected:", accounts);
-            updateBestScore();
+            if (accounts.length) {
+                updateBestScoreWithAccount(accounts[0]);
+            }
         });
     }
 
@@ -157,36 +176,24 @@ async function connectWallet() {
             }
         }
 
-        // Всегда запрашиваем аккаунты, чтобы обновить signer
-        await provider.send("eth_requestAccounts", []);
+        // Запрашиваем аккаунты и получаем первый адрес напрямую
+        const accounts = await provider.send("eth_requestAccounts", []);
+        if (!accounts.length) {
+            console.error("No accounts returned");
+            return;
+        }
+        const account = accounts[0];
 
-        // Переинициализируем signer и контракт
-        signer = provider.getSigner();
+        // Переинициализируем signer и контракт, используя полученный аккаунт
+        signer = provider.getSigner(account);
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
         document.getElementById("walletStatus").innerText = `Connected: ${walletType}`;
-        // Вызываем обновление best score сразу после подключения
-        updateBestScore();
+
+        // Вызываем updateBestScore с полученным адресом
+        updateBestScoreWithAccount(account);
     } catch (err) {
         console.error("Wallet connection failed:", err);
-    }
-}
-
-/**
- * Обновляет лучший результат, полученный из контракта
- */
-async function updateBestScore() {
-    if (!signer) return;
-    try {
-        const playerAddress = await signer.getAddress();
-        const result = await contract.getBestScore(playerAddress);
-        const points = result[0].toString();
-        const moves = result[1].toString();
-        const level = result[2].toString();
-        document.getElementById("lastScore").innerText = `Best Score: ${points} (Moves: ${moves}, Level: ${level})`;
-    } catch (error) {
-        console.error("Error fetching best score:", error);
-        document.getElementById("lastScore").innerText = "Best Score: No record found";
     }
 }
 
@@ -214,7 +221,9 @@ async function recordGameResult(points, moves, level) {
         await tx.wait();
         console.log("Transaction confirmed:", tx.hash);
         alert("Score recorded on blockchain!");
-        updateBestScore();
+        // После записи обновляем best score
+        const currentAccount = await signer.getAddress();
+        updateBestScoreWithAccount(currentAccount);
     } catch (error) {
         console.error("Error recording score:", error);
         alert("Error recording score: " + error.message);
